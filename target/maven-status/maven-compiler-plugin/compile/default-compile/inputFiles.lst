@@ -1,5 +1,6 @@
 /workspaces/concert-ticket-booking/src/main/java/com/example/DemoApplication.java
 /workspaces/concert-ticket-booking/src/main/java/com/example/demo/entity/Flight.java
+/workspaces/concert-ticket-booking/src/main/java/com/example/demo/entity/OutboxEvent.java
 /workspaces/concert-ticket-booking/src/main/java/com/example/demo/entity/Ticket.java
 /workspaces/concert-ticket-booking/src/main/java/com/example/demo/entity/TicketStatus.java
 /workspaces/concert-ticket-booking/src/main/java/com/example/demo/entity/User.java
@@ -9,7 +10,11 @@
 /workspaces/concert-ticket-booking/src/main/java/com/example/demo/exception/TicketAlreadyBookedException.java
 /workspaces/concert-ticket-booking/src/main/java/com/example/demo/exception/TicketNotFoundException.java
 /workspaces/concert-ticket-booking/src/main/java/com/example/demo/repository/FlightRepository.java
+/workspaces/concert-ticket-booking/src/main/java/com/example/demo/repository/OutboxEventRepository.java
 /workspaces/concert-ticket-booking/src/main/java/com/example/demo/repository/TicketRepository.java
 /workspaces/concert-ticket-booking/src/main/java/com/example/demo/repository/UserRepository.java
+/workspaces/concert-ticket-booking/src/main/java/com/example/demo/scheduler/OutboxRelayScheduler.java
 /workspaces/concert-ticket-booking/src/main/java/com/example/demo/scheduler/ReservationCleanupScheduler.java
+/workspaces/concert-ticket-booking/src/main/java/com/example/demo/service/LoggingOutboxEventPublisher.java
+/workspaces/concert-ticket-booking/src/main/java/com/example/demo/service/OutboxEventPublisher.java
 /workspaces/concert-ticket-booking/src/main/java/com/example/demo/service/TicketService.java

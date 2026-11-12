@@ -1,11 +1,15 @@
 package com.example.demo.service;
 
+import com.example.demo.entity.OutboxEvent;
 import com.example.demo.entity.Ticket;
 import com.example.demo.entity.TicketStatus;
 import com.example.demo.entity.User;
 import com.example.demo.exception.*;
+import com.example.demo.repository.OutboxEventRepository;
 import com.example.demo.repository.TicketRepository;
 import com.example.demo.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +28,8 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
     private final Clock clock;
 
     @Transactional
@@ -31,7 +39,6 @@ public class TicketService {
 
         Instant now = Instant.now(clock);
 
-        // Ленивая очистка: если бронь просрочена, освобождаем билет прямо сейчас
         if (ticket.getStatus() == TicketStatus.RESERVED && ticket.getReservedUntil().isBefore(now)) {
             ticket.setStatus(TicketStatus.AVAILABLE);
             ticket.setUser(null);
@@ -70,7 +77,31 @@ public class TicketService {
 
         ticket.setStatus(TicketStatus.SOLD);
         ticket.setReservedUntil(null);
+        Ticket savedTicket = ticketRepository.save(ticket);
 
-        return ticketRepository.save(ticket);
+        OutboxEvent event = OutboxEvent.builder()
+                .id(UUID.randomUUID())
+                .aggregateType("TICKET")
+                .aggregateId(savedTicket.getId().toString())
+                .eventType("CONCERT_TICKET_PURCHASED")
+                .payload(serializePayload(savedTicket, userId, now))
+                .createdAt(now)
+                .build();
+        outboxEventRepository.save(event);
+
+        return savedTicket;
+    }
+
+    private String serializePayload(Ticket ticket, Long userId, Instant purchasedAt) {
+        try {
+            return objectMapper.writeValueAsString(Map.of(
+                    "ticketId", ticket.getId(),
+                    "seatNumber", ticket.getSeatNumber(),
+                    "userId", userId,
+                    "purchasedAt", purchasedAt.toString()
+            ));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize outbox event payload", e);
+        }
     }
 }
